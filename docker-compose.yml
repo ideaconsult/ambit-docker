@@ -1,0 +1,35 @@
+version: '3'
+
+networks:
+  db:
+
+volumes:
+  db:
+
+services:
+
+  db:
+    hostname: ambit-db
+    image: ideaconsult/ambit-db:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - db
+
+  api:
+    hostname: ambit-api
+    image: ideaconsult/ambit-api:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    environment:
+      - "AMBIT_DATABASE=nanoreg1"
+    depends_on:
+      - db
+    networks:
+      - db
+    ports:
+      - '127.0.0.1:8080:8080'

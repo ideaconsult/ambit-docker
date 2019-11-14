@@ -1,0 +1,1 @@
+When setting up AMBIT with non-public data, put the compressed SQL dumps of these databases here.

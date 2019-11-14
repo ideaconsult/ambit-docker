@@ -1,0 +1,4 @@
+**/*.war
+**/data_import/*
+
+!**/data_import/README.md
