@@ -5,14 +5,18 @@ set -o pipefail
 set -o nounset
 
 declare -A tags=(
-    ['ambit-api/tomcat7-jdk8-openjdk']='tomcat7-jdk8-openjdk tomcat7-jdk8 tomcat7 latest'
-    ['ambit-db/mariadb/10.4']='mariadb-10.4 mariadb-10 mariadb latest'
-    ['ambit-db/mariadb/10.3']='mariadb-10.3'
-    ['ambit-db/mariadb/10.2']='mariadb-10.2'
-    ['ambit-db/mariadb/10.1']='mariadb-10.1'
-    ['ambit-db/mysql/8.0']='mysql-8.0 mysql-8 mysql'
-    ['ambit-db/mysql/5.7']='mysql-5.7 mysql-5'
-    ['ambit-db/mysql/5.6']='mysql-5.6'
+    ['ambit-api/tomcat10-jdk8-openjdk']='   tomcat10-jdk8-openjdk   tomcat10-jdk8   tomcat10'
+    ['ambit-api/tomcat9-jdk8-openjdk']='    tomcat9-jdk8-openjdk    tomcat9-jdk8    tomcat9'
+    ['ambit-api/tomcat8.5-jdk8-openjdk']='  tomcat8.5-jdk8-openjdk  tomcat8.5-jdk8  tomcat8.5'
+    ['ambit-api/tomcat7-jdk8-openjdk']='    tomcat7-jdk8-openjdk    tomcat7-jdk8    tomcat7     latest'
+    ['ambit-db/mariadb/10.5']='             mariadb-10.5            mariadb-10      mariadb     latest'
+    ['ambit-db/mariadb/10.4']='             mariadb-10.4'
+    ['ambit-db/mariadb/10.3']='             mariadb-10.3'
+    ['ambit-db/mariadb/10.2']='             mariadb-10.2'
+    ['ambit-db/mariadb/10.1']='             mariadb-10.1'
+    ['ambit-db/mysql/8.0']='                mysql-8.0               mysql-8         mysql'
+    ['ambit-db/mysql/5.7']='                mysql-5.7               mysql-5'
+    ['ambit-db/mysql/5.6']='                mysql-5.6'
 )
 
 base="${PWD}"
