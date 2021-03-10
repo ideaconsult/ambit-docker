@@ -1,0 +1,171 @@
+name: Build the ambit-docker images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-ambit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the AMBIT repository
+      uses: actions/checkout@v2
+      with:
+        repository: ideaconsult/ambit-mirror
+        token: ${{ secrets.GH_TOKEN }}
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        settings-path: ${{ github.workspace }} # location for the settings.xml file
+    - name: Set up Maven if using act
+      if: ${{ env.ACT }}
+      env:
+        maven_version: 3.6.3
+      run: |
+        wget -P /tmp "https://mirrors.netix.net/apache/maven/maven-3/${maven_version}/binaries/apache-maven-${maven_version}-bin.tar.gz"
+        tar xf "/tmp/apache-maven-${maven_version}-bin.tar.gz" -C /opt
+        ln -s -t /usr/bin "/opt/apache-maven-${maven_version}/bin/mvn"
+    - name: Cache the local Maven repository
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+    - name: Build with Maven (ambit-all)
+      run: >-
+        mvn
+        -B
+        -f ambit2-all/pom.xml
+        clean
+        install
+        -DskipTests=true
+    - name: Build with Maven (ambit-apps)
+      run: >-
+        mvn
+        -B
+        -f ambit2-apps/pom.xml
+        clean
+        install
+        -P http
+        -P docker_generic
+        -DskipTests=true
+    - name: Build with Maven (ambit-www)
+      run: >-
+        mvn
+        -B
+        -f ambit2-apps/ambit2-www/pom.xml
+        clean
+        package
+        -P http
+        -P docker_generic
+        -DskipTests=true
+    - name: Save the newly build WAR
+      uses: actions/upload-artifact@v2
+      with:
+        name: ambit-war
+        path: ambit2-apps/ambit2-www/target/ambit2.war
+        retention-days: 1
+  set-build-matrices:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix-api: ${{ steps.api.outputs.matrix }}
+      matrix-db: ${{ steps.db.outputs.matrix }}
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+    - name: Determining the ambit-api build matrix
+      id: api
+      env:
+        prefix: ci/ambit-api
+      run: |
+        export matrix_list="$(awk 'NR > 1 { printf ", " } { printf "\"" $1 "\"" }' '${{ env.prefix }}/tags.txt')"
+        export matrix_json="{\"ver\":[${matrix_list}]}"
+        jq . <<<"$matrix_json" # lint
+        echo "::set-output name=matrix::${matrix_json}"
+    - name: Determine the build matrix
+      id: db
+      env:
+        prefix: ci/ambit-db
+      run: |
+        export matrix_list="$(awk 'NR > 1 { printf ", " } { printf "\"" $1 "\"" }' '${{ env.prefix }}/tags.txt')"
+        export matrix_json="{\"ver\":[${matrix_list}]}"
+        jq . <<<"$matrix_json" # lint
+        echo "::set-output name=matrix::${matrix_json}"
+  build-images-api:
+    needs: [build-ambit, set-build-matrices]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-build-matrices.outputs.matrix-api) }}
+    env:
+      image: ambit-api
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+    - name: Load the latest WAR
+      uses: actions/download-artifact@v2
+      with:
+        name: ambit-war
+        path: ./ci/${{ env.image }}/${{ matrix.ver }}
+    - name: Determine the image tags
+      run: |
+        export tags_list="$(while read repo; do for tag in $(grep '${{ matrix.ver }}' './ci/${{ env.image }}/tags.txt'); do printf ',%s/%s:%s' "$repo" "$image" "$tag"; done; done <'./ci/${{ env.image }}/repos.txt')"
+        echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: idea-docker
+        password: ${{ secrets.GHCR_TOKEN }}
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: kerberizer
+        password: ${{ secrets.DCKR_TOKEN }}
+    - name: Build the ambit-api image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./ci/${{ env.image }}/${{ matrix.ver }}
+        pull: true
+        push: true
+        tags: ${{ env.image_tags }}
+  build-images-db:
+    needs: set-build-matrices
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-build-matrices.outputs.matrix-db) }}
+    env:
+      image: ambit-db
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+    - name: Determine the image tags
+      run: |
+        export tags_list="$(while read repo; do for tag in $(grep '${{ matrix.ver }}' './ci/${{ env.image }}/tags.txt'); do printf ',%s/%s:%s' "$repo" "$image" "$tag"; done; done <'./ci/${{ env.image }}/repos.txt')"
+        echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: idea-docker
+        password: ${{ secrets.GHCR_TOKEN }}
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: kerberizer
+        password: ${{ secrets.DCKR_TOKEN }}
+    - name: Build the ambit-db image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./ci/${{ env.image }}/${{ matrix.ver }}
+        pull: true
+        push: true
+        tags: ${{ env.image_tags }}

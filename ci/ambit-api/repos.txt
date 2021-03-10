@@ -1,0 +1,2 @@
+docker.io/ideaconsult
+ghcr.io/ideaconsult

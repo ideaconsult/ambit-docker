@@ -1,0 +1,4 @@
+tomcat10-jdk8-openjdk   tomcat10-jdk8   tomcat10
+tomcat9-jdk8-openjdk    tomcat9-jdk8    tomcat9     latest
+tomcat8.5-jdk8-openjdk  tomcat8.5-jdk8  tomcat8.5
+tomcat7-jdk8-openjdk    tomcat7-jdk8    tomcat7
