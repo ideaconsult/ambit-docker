@@ -10,3 +10,6 @@ AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.n
 1. `docker-compose up`
 1. open http://127.0.0.1:8080/ambit
 1. <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console to stop it
+
+# Possible problems
+If you hit the Docker Hub pull limits, use [GitHub Container Registry](https://github.com/orgs/ideaconsult/packages). You'll need to edit the docker-compose files and prepend the `image` settings with `ghcr.io/`, e.g. `ideaconsult/ambit-db:latest` becomes `ghcr.io/ideaconsult/ambit-db:latest`.
