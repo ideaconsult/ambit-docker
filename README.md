@@ -3,7 +3,7 @@ This repo helps you test AMBIT on your machine or deploy it inside your organiza
 
 
 # Quick start
-AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.net/nanoreg_about.html) in under 30 seconds:
+AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.net/about/nanoreg/) in under 30 seconds:
 1. [install Docker Compose](https://docs.docker.com/compose/install/) if you haven't already
 1. `git clone https://github.com/ideaconsult/ambit-docker.git`
 1. `cd ambit-docker`
