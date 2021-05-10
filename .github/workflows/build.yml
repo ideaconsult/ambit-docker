@@ -219,12 +219,12 @@ jobs:
   send-notifications:
 
     needs: [build-ambit, set-build-matrices, build-images-api, build-images-db]
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
 
       - name: Send Discord Notification
         uses: sarisia/actions-status-discord@v1
-        if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
