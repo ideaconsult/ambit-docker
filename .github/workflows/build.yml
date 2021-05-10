@@ -1,7 +1,7 @@
 ---
 name: Build the ambit-docker images
 
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
   repository_dispatch:
     types: [ambit-repo-push]
