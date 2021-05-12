@@ -239,7 +239,7 @@ jobs:
             ${{ needs.set-build-matrices.outputs.job-status }}
             ${{ needs.build-images-api.outputs.job-status }}
             ${{ needs.build-images-db.outputs.job-status }}
-        run: >-
+        run: |
           for status in ${{ env.job-statuses }}; do
             case "$status" in
               cancelled | failure )
