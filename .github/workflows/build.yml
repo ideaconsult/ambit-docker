@@ -234,7 +234,7 @@ jobs:
 
       - name: Determine the final action status
         env:
-          job-statuses: >
+          job-statuses: >-
             ${{ needs.build-ambit.outputs.job-status }}
             ${{ needs.set-build-matrices.outputs.job-status }}
             ${{ needs.build-images-api.outputs.job-status }}
