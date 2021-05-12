@@ -259,7 +259,7 @@ jobs:
           echo "final_status=$final_status" >>"$GITHUB_ENV"
 
       - name: Send Discord notification
-        uses: sarisia/actions-status-discord@v1
+        uses: kerberizer/actions-status-discord@master
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ env.final_status }}
