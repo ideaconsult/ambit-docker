@@ -255,7 +255,8 @@ jobs:
                 break
                 ;;
             esac
-            echo "final_status=$final_status" >>"$GITHUB_ENV"
+          done
+          echo "final_status=$final_status" >>"$GITHUB_ENV"
 
       - name: Send Discord notification
         uses: sarisia/actions-status-discord@v1
