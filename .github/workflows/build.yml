@@ -224,42 +224,43 @@ jobs:
           push: true
           tags: ${{ env.image_tags }}
 
-  send-notifications:
-
-    needs: [build-ambit, set-build-matrices, build-images-api, build-images-db]
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: Determine the final action status
-        env:
-          job-statuses: >-
-            ${{ needs.build-ambit.outputs.job-status }}
-            ${{ needs.set-build-matrices.outputs.job-status }}
-            ${{ needs.build-images-api.outputs.job-status }}
-            ${{ needs.build-images-db.outputs.job-status }}
-        run: |
-          for status in ${{ env.job-statuses }}; do
-            case "$status" in
-              cancelled | failure )
-                final_status=$status
-                break
-                ;;
-              success)
-                final_status=$status
-                continue
-                ;;
-              *)
-                final_status=failure
-                break
-                ;;
-            esac
-          done
-          echo "final_status=$final_status" >>"$GITHUB_ENV"
-
-      - name: Send Discord notification
-        uses: kerberizer/actions-status-discord@master
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ env.final_status }}
+# FIXME: Temporarily not sending notifications to Discord until we manage to send the final status.
+#  send-notifications:
+#
+#    needs: [build-ambit, set-build-matrices, build-images-api, build-images-db]
+#    if: always()
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#
+#      - name: Determine the final action status
+#        env:
+#          job-statuses: >-
+#            ${{ needs.build-ambit.outputs.job-status }}
+#            ${{ needs.set-build-matrices.outputs.job-status }}
+#            ${{ needs.build-images-api.outputs.job-status }}
+#            ${{ needs.build-images-db.outputs.job-status }}
+#        run: |
+#          for status in ${{ env.job-statuses }}; do
+#            case "$status" in
+#              cancelled | failure )
+#                final_status=$status
+#                break
+#                ;;
+#              success)
+#                final_status=$status
+#                continue
+#                ;;
+#              *)
+#                final_status=failure
+#                break
+#                ;;
+#            esac
+#          done
+#          echo "final_status=$final_status" >>"$GITHUB_ENV"
+#
+#      - name: Send Discord notification
+#        uses: kerberizer/actions-status-discord@master
+#        with:
+#          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+#          status: ${{ env.final_status }}
