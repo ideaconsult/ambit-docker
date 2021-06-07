@@ -137,7 +137,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Identify the OpenJDK version
-        run: >-
+        run: |
           export java_version="$(echo ${{ matrix.ver }} | sed 's|.*-jdk\([[:digit:]]\+\)-.*|\1|')"
           echo "java_version=${java_version}" >>"$GITHUB_ENV"
 
