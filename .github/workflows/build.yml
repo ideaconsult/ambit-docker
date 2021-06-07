@@ -14,6 +14,9 @@ jobs:
   build-ambit:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [8, 11]
     outputs:
       job-status: ${{ job.status }}
 
@@ -26,11 +29,11 @@ jobs:
           ref: ${{ github.event.client_payload.sha }}
           token: ${{ secrets.GH_R_PR }}
 
-      - name: Set up Adopt OpenJDK 8 HotSpot JVM
+      - name: Set up Adopt OpenJDK ${{ matrix.java-version }} HotSpot JVM
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: '8'
+          java-version: ${{ matrix.java-version }}
           server-id: github  # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }}  # location for the settings.xml file
 
@@ -80,7 +83,7 @@ jobs:
       - name: Save the newly build WAR
         uses: actions/upload-artifact@v2
         with:
-          name: ambit-war
+          name: ambit-war-java${{ matrix.java-version }}
           path: ambit2-apps/ambit2-www/target/ambit2.war
           retention-days: 1
 
@@ -133,10 +136,15 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v2
 
-      - name: Load the latest WAR
+      - name: Identify the OpenJDK version
+        run: >-
+          export java_version="$(echo ${{ matrix.ver }} | sed 's|.*-jdk\([[:digit:]]\+\)-.*|\1|')"
+          echo "java_version=${java_version}" >>"$GITHUB_ENV"
+
+      - name: Load the latest WAR for the required OpenJDK version
         uses: actions/download-artifact@v2
         with:
-          name: ambit-war
+          name: ambit-war-java${{ env.java_version }}
           path: ./ci/${{ env.image }}/${{ matrix.ver }}
 
       - name: Determine the image tags
