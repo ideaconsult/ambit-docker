@@ -43,10 +43,13 @@ initdb_d_populate_databases="${initdb_d_base}/04-populate-databases.sql"
 mysql_datadir="$(mysqld --verbose --help --log-bin-index=/dev/null 2>/dev/null \
     | awk '/^datadir[[:blank:]]/ { print $2 }')"
 
-if [[ ! -d ${mysql_datadir}/mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
+if [[ ! -d ${mysql_datadir}mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
 
     # Create the AMBIT user and the AMBIT users database.
+    # FIXME: We also need the 'guest'@'localhost' user.
+    guest_pass="$(openssl rand -base64 32)"
     {
+        echo "CREATE USER 'guest'@'localhost' IDENTIFIED BY '${guest_pass}';"
         echo "CREATE USER '${ambit_db_user}'@'%' IDENTIFIED BY '${ambit_db_pass}';"
         echo "CREATE DATABASE \`${ambit_users_db}\` CHARACTER SET utf8;"
         echo "GRANT ALL ON \`${ambit_users_db}\`.* TO '${ambit_db_user}'@'%';"

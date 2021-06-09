@@ -16,11 +16,12 @@ services:
       - ambit-config.env
     volumes:
       - db:/var/lib/mysql
+      - ./data_import:/opt/ambit/data_import
     networks:
       - db
 
-  api:
-    hostname: ambit-api
+  api-nanoreg1:
+    hostname: ambit-api-nanoreg1
     image: ideaconsult/ambit-api:latest
     restart: unless-stopped
     env_file:
@@ -33,3 +34,18 @@ services:
       - db
     ports:
       - '127.0.0.1:8080:8080'
+
+  api-nanoreg2:
+    hostname: ambit-api-nanoreg2
+    image: ideaconsult/ambit-api:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    environment:
+      - "AMBIT_DATABASE=nanoreg2"
+    depends_on:
+      - db
+    networks:
+      - db
+    ports:
+      - '127.0.0.1:8081:8080'

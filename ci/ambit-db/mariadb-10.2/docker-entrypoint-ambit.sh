@@ -14,7 +14,7 @@ ambit_base='/opt/ambit'
 ambit_tmp="${ambit_base}/tmp"
 ambit_sql_tables="${ambit_tmp}/create_tables.sql"
 ambit_sql_users="${ambit_tmp}/users.sql"
-ambit_sql_data_import="file://${ambit_base}/data_import"
+ambit_sql_data_import="${ambit_base}/data_import"
 
 declare -a procedure_list=(
     'findByProperty'
@@ -23,9 +23,9 @@ declare -a procedure_list=(
     'createBundleVersion'
 )
 
-declare -A db_import_list=(
-    ['echa_substance_food']="${ambit_sql_data_import}/echa_substance_food.sql.xz"
+declare -A public_db_import_urls=(
     ['nanoreg1']='https://zenodo.org/record/3467016/files/nanoreg_nrfiles.sql.xz'
+    ['nanoreg2']='https://zenodo.org/record/4713745/files/nanoreg2.sql.xz'
 )
 
 initdb_d_base='/docker-entrypoint-initdb.d'
@@ -43,10 +43,13 @@ initdb_d_populate_databases="${initdb_d_base}/04-populate-databases.sql"
 mysql_datadir="$(mysqld --verbose --help --log-bin-index=/dev/null 2>/dev/null \
     | awk '/^datadir[[:blank:]]/ { print $2 }')"
 
-if [[ ! -d ${mysql_datadir}/mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
+if [[ ! -d ${mysql_datadir}mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
 
     # Create the AMBIT user and the AMBIT users database.
+    # FIXME: We also need the 'guest'@'localhost' user.
+    guest_pass="$(openssl rand -base64 32)"
     {
+        echo "CREATE USER 'guest'@'localhost' IDENTIFIED BY '${guest_pass}';"
         echo "CREATE USER '${ambit_db_user}'@'%' IDENTIFIED BY '${ambit_db_pass}';"
         echo "CREATE DATABASE \`${ambit_users_db}\` CHARACTER SET utf8;"
         echo "GRANT ALL ON \`${ambit_users_db}\`.* TO '${ambit_db_user}'@'%';"
@@ -84,27 +87,28 @@ if [[ ! -d ${mysql_datadir}/mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
 
 
     # If well-known public databases are defined, populate them.
-    echo '[Entrypoint AMBIT] Fetching well-known public databases if necessary...'
+    echo '[Entrypoint AMBIT] Populating databases...'
     for ambit_db in ${ambit_databases}; do
-        # The well-known DB names (e.g. "nanoreg") should be keys in the associative array
-        # ${db_import_list}, with the URI to fetch the (compressed) SQL from as value.
         set +o nounset
-        if [[ ${db_import_list[${ambit_db}]} ]]; then
-            import_source="${db_import_list[${ambit_db}]}"
+        if [[ -r ${ambit_sql_data_import}/${ambit_db}.sql.xz ]]; then
+            set -o nounset
             echo "USE \`${ambit_db}\`;"
-            if [[ ${import_source%:*} = 'file' ]]; then
-                import_file="${import_source#file://}"
-                if [[ ! -r ${import_file} ]]; then
-                    echo "ERROR: Missing import data file: ${import_file}" >/dev/stderr
-                    exit 70
-                else
-                    xzcat "${import_file}"
-                fi
-            else
-                curl -s "${import_source}" | xzcat
-            fi
+            xzcat "${ambit_sql_data_import}/${ambit_db}.sql.xz"
+        # Well-known DB names (e.g. "nanoreg1") could be set as keys in the associative array
+        # ${public_db_import_urls}, with the URI to fetch the (compressed) SQL from as value.
+        elif [[ ${public_db_import_urls[${ambit_db}]} ]]; then
+            set -o nounset
+            import_url="${public_db_import_urls[${ambit_db}]}"
+            echo "USE \`${ambit_db}\`;"
+            curl -s "${import_url}" | xzcat
+        else
+            set -o nounset
+            echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" >/dev/stderr
+            echo >/dev/stderr
+            echo "WARNING: Missing SQL import file for database \"${ambit_db}\"" >/dev/stderr
+            echo >/dev/stderr
+            echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" >/dev/stderr
         fi
-        set -o nounset
     done >"${initdb_d_populate_databases}"
 
 
@@ -117,7 +121,7 @@ fi
 
 
 # Switch to the upstream Docker image entrypoint script.
-exec /docker-entrypoint.sh "$@"
+exec /usr/local/bin/docker-entrypoint.sh "$@"
 
 
 # vim: set ts=4 sts=4 sw=4 tw=100 et:
