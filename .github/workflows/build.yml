@@ -11,12 +11,54 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
 
+  set-test-matrices:
+
+    runs-on: ubuntu-latest
+    outputs:
+      matrix-db: ${{ steps.db.outputs.matrix }}
+      war-db: ${{ steps.db.outputs.war-db }}
+
+    steps:
+
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Determining the RDBMS test matrix
+        id: db
+        env:
+          prefix: ci/ambit-db
+          awk_get_tags_json: >-
+            BEGIN { printf "[" }
+            NR > 1 { printf "," }
+            {
+              split($1, arr, "-");
+              printf "\"" arr[1] ":" arr[2] "\"";
+            }
+            END { printf "]" }
+          awk_get_war_from_db: >-
+            /\<latest\>/ {
+              split($1, arr, "-");
+              printf arr[1] ":" arr[2];
+            }
+        run: |
+          matrix_json="$( awk "${awk_get_tags_json}" '${{ env.prefix }}/tags.txt')"
+          jq . <<<"${matrix_json}"  # lint
+          echo "::set-output name=matrix::${matrix_json}"
+
+          war_db="$( awk "${awk_get_war_from_db}" '${{ env.prefix }}/tags.txt')"
+          echo "::set-output name=war-db::${war_db}"
+
   build-ambit:
 
+    needs: [set-test-matrices]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         java-version: [8, 11]
+        rdbms-version: ${{ fromJson(needs.set-test-matrices.outputs.matrix-db) }}
+      fail-fast: false
+    env:
+      rdbms_ctnr_name: gh-act-rdbms-test
     outputs:
       job-status: ${{ job.status }}
 
@@ -55,11 +97,68 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Set up a RDBMS for unit testing
+        env:
+          rdbms_test_db_name: ambit-test
+          rdbms_test_db_user: guest
+          rdbms_test_db_pass: guest
+          rdbms_init_timeout: '30'
+        run: >-
+          docker_cmd=(
+            'docker'
+            'run'
+            "--name=${rdbms_ctnr_name}"
+            '--detach'
+            "--env=MYSQL_DATABASE=${rdbms_test_db_name}"
+            "--env=MYSQL_USER=${rdbms_test_db_user}"
+            "--env=MYSQL_PASSWORD=${rdbms_test_db_pass}"
+            '--env=MYSQL_RANDOM_ROOT_PASSWORD=1'
+            '--publish=127.0.0.1:3306:3306'
+            '${{ matrix.rdbms-version }}'
+          )
+
+          rdbms_xtra_cfg=(
+            '[client]'
+            'host = 127.0.0.1'
+            "user = \"${rdbms_test_db_user}\""
+            "password = \"${rdbms_test_db_pass}\""
+            'silent'
+          )
+
+          mysqladmin_cmd=(
+            'mysqladmin'
+            '--defaults-extra-file=rdbms-xtra.cfg'
+            'version'
+          )
+
+          # NOTE: Don't remove the empty line after the following comments. Because of how the YAML
+          # block scalars are parsed, the command will otherwise become part of the comment line.
+
+          # Start the RDBMS container.
+
+          "${docker_cmd[@]}"
+
+          # Use a config file to avoid the "password on the command line" warning.
+
+          OLD_IFS="$IFS";
+          IFS=$'\n';
+          printf '%s\n' "${rdbms_xtra_cfg[*]}" >rdbms-xtra.cfg;
+          IFS="$OLD_IFS"
+          ;cat rdbms-xtra.cfg
+
+          # Wait for the RDBMS to become operational.
+          # Note that the output should contain the version information. If it doesn't,
+          # but the step still succeeds, there's a problem with the auth credentials.
+
+          for (( tmout=${rdbms_init_timeout}; tmout > 0; tmout-- )); do
+            [[ ${tmout} -lt ${rdbms_init_timeout} ]] && sleep 1;
+            "${mysqladmin_cmd[@]}" && exit 0;
+          done; false
+
       - name: Build with Maven (ambit-all)
         run: >-
           mvn
           -B -f ambit2-all/pom.xml
-          -DskipTests=true
           clean install
 
       - name: Build with Maven (ambit-apps)
@@ -80,7 +179,12 @@ jobs:
           -P http
           clean package
 
+      - name: Stop the RDBMS for unit testing
+        run: docker stop "${rdbms_ctnr_name}"
+
       - name: Save the newly build WAR
+        # Only the one tested with the RDBMS marked with our "latest" image tag
+        if: ${{ matrix.rdbms-version == needs.set-test-matrices.outputs.war-db }}
         uses: actions/upload-artifact@v2
         with:
           name: ambit-war-java${{ matrix.java-version }}
