@@ -40,5 +40,18 @@ Check also the `examples` directory for other examples.
 * When you make changes to `docker-compose.yml`, Docker Compose automatically recreates the containers for you. However, if you make changes to `ambit-config.env` and other files, these changes might not be picked up. In such cases it is advisable to run `sudo docker-compose down` before running `sudo docker-compose up` again. Do note, however, that even this command will not affect the databases. If you want to have the datases recreated, for example, if you have changed `AMBIT_DATABASES`, you should run `sudo docker-compose down -v`. **WARNING: The latter command will irreversibly destroy the existing databases! If you have entered custom data, make a dump before running the command!** One way of doing this could be `sudo docker-compose exec db mysqldump -uroot -p<value-of-MYSQL_ROOT_PASSWORD> --single-transaction --add-drop-database --databases --routines <database-name>`; redirect the output as needed, e.g. to a file.
 * You can run the setup in background by using `sudo docker-compose up -d`. To stop, from the **same** directory, run `sudo docker-compose stop`.
 
+# Supported tags
+
+Container | Tags
+--------- | ----
+ambit-api | [ci/ambit-api/tags.txt](https://github.com/ideaconsult/ambit-docker/blob/master/ci/ambit-api/tags.txt)
+ambit-db  | [ci/ambit-db/tags.txt](https://github.com/ideaconsult/ambit-docker/blob/master/ci/ambit-db/tags.txt)
+
+## Notes on specific versions
+
+* Java 11 is supported, but is much less tested than Java 8.
+* MySQL 8 is *not* supported. Support is in the works.
+* Tomcat 10 is *not* supported. We plan to move away from Tomcat.
+
 # Possible problems
 If you hit the Docker Hub pull limits, use [GitHub Container Registry](https://github.com/orgs/ideaconsult/packages). You'll need to edit the docker-compose files and prepend the `image` settings with `ghcr.io/`, e.g. `ideaconsult/ambit-db:latest` becomes `ghcr.io/ideaconsult/ambit-db:latest`.
