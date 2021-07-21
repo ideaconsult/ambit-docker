@@ -337,6 +337,34 @@ jobs:
           push: ${{ github.ref == 'refs/heads/master' }}  # push only if we're on the master branch
           tags: ${{ env.image_tags }}
 
+  integration-testing:
+
+    needs: [build-images-api, build-images-db]
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Spin up a default docker-compose setup
+        run: |
+          docker-compose pull
+          docker-compose up --detach
+
+      - name: Wait for the API to become operational
+        run: |
+          for ((;;)) {
+            sleep 1
+            curl -s http://127.0.0.1:{8080,8081}/ambit/algorithm && break
+          }
+
+      - name: Run the API tests
+        run: ./ci/run_integration_tests.sh
+
+      - name: Bring down the docker-compose setup
+        run: docker-compose down --volumes
+
 # FIXME: Temporarily not sending notifications to Discord until we manage to send the final status.
 #  send-notifications:
 #
