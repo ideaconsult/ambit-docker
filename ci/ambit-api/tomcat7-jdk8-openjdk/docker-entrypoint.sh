@@ -73,6 +73,3 @@ fi
 
 # Execute any custom command provided.
 exec "$@"
-
-
-# vim: set ts=4 sts=4 sw=4 tw=100 et:

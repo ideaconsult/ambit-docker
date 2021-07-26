@@ -122,6 +122,3 @@ fi
 
 # Switch to the upstream Docker image entrypoint script.
 exec /usr/local/bin/docker-entrypoint.sh "$@"
-
-
-# vim: set ts=4 sts=4 sw=4 tw=100 et:
