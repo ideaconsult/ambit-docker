@@ -1,5 +1,5 @@
 # Empty database
-This example shows how to start AMBIT with an empty database, with no data in it, mainly for populating the database with your own data or perhaps testing of the generic AMBIT functionality.
+This example shows how to start AMBIT with an empty database, mainly for populating it with your own data or perhaps testing of the generic AMBIT functionality. Note that it also exposes the RDBMS port locally to allow, for example, importing data directly into the database.
 
 # Quick Start
 1. [Install Docker Compose](https://docs.docker.com/compose/install/) if you haven't already.
