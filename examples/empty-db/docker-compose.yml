@@ -19,6 +19,8 @@ services:
       - ./data_import:/opt/ambit/data_import
     networks:
       - db
+    ports:
+      - '127.0.0.1:3306:3306'
 
   api-test:
     hostname: ambit-api-test
