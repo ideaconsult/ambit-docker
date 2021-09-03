@@ -21,7 +21,7 @@ Need different datasets? An empty instance to populate with your own data?
 Copy the `docker-compose.yml` and `ambit-config.env` files to a new directory and edit them to suit your needs.
 
 ## Examples
-Check the [examples](examples/) for some ready-made solutions or see below for more technical information.
+Check the [examples](examples) for some ready-made solutions or see below for more technical information.
 
 ## Importing custom datasets
 Some publicly available datasets are automatically downloaded, when their names are recognized in the configuration. Currently, these include `nanoreg1` and `nanoreg2`.

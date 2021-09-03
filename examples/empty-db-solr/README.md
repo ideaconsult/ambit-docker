@@ -1,5 +1,5 @@
 # Empty database plus Solr
-This builds upon the [empty database example](../empty-db/README.md) by adding a small [Apache Solr](https://solr.apache.org/) cluster for testing.
+This builds upon the [empty database example](../empty-db) by adding a small [Apache Solr](https://solr.apache.org/) cluster for testing.
 
 Add data in AMBIT at http://127.0.0.1:8080/ambit or directly import to the RDBMS, which is exposed on `127.0.0.1:3306`. Solr is accessible behind a [HAProxy](http://www.haproxy.org/) load balancer on http://127.0.0.1:8983/.
 
