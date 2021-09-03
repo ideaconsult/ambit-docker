@@ -1,0 +1,175 @@
+version: '3'
+
+networks:
+  db:
+  solr:
+  zk:
+
+volumes:
+  db:
+  solr1:
+  solr2:
+  solr3:
+  zk1-data:
+  zk1-datalog:
+  zk2-data:
+  zk2-datalog:
+  zk3-data:
+  zk3-datalog:
+
+services:
+
+  db:
+    hostname: ambit-db
+    image: ideaconsult/ambit-db:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    volumes:
+      - db:/var/lib/mysql
+      - ./data_import:/opt/ambit/data_import
+    networks:
+      - db
+    ports:
+      - '127.0.0.1:3306:3306'
+
+  api:
+    hostname: ambit-api
+    image: ideaconsult/ambit-api:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    environment:
+      AMBIT_DATABASE: ambit-test
+    depends_on:
+      - db
+    networks:
+      - db
+      - solr
+    ports:
+      - '127.0.0.1:8080:8080'
+
+  haproxy:
+    hostname: ambit-haproxy
+    image: haproxy:lts-alpine
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+    depends_on:
+      - solr1
+      - solr2
+      - solr3
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - solr
+    ports:
+      - '127.0.0.1:8983:8983'
+
+  solr1:
+    hostname: ambit-solr1
+    image: solr:8
+    restart: unless-stopped
+    environment:
+      ENABLE_REMOTE_JMX_OPTS: 'false'
+      SOLR_HEAP: 4g
+      SOLR_HOST: ambit-solr1
+      ZK_HOST: zk1:2181,zk2:2181,zk3:2181
+    depends_on:
+      - api
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr1:/var/solr
+    networks:
+      - solr
+      - zk
+
+  solr2:
+    hostname: ambit-solr2
+    image: solr:8
+    restart: unless-stopped
+    environment:
+      ENABLE_REMOTE_JMX_OPTS: 'false'
+      SOLR_HEAP: 4g
+      SOLR_HOST: ambit-solr2
+      ZK_HOST: zk1:2181,zk2:2181,zk3:2181
+    depends_on:
+      - api
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr2:/var/solr
+    networks:
+      - solr
+      - zk
+
+  solr3:
+    hostname: ambit-solr3
+    image: solr:8
+    restart: unless-stopped
+    environment:
+      ENABLE_REMOTE_JMX_OPTS: 'false'
+      SOLR_HEAP: 4g
+      SOLR_HOST: ambit-solr3
+      ZK_HOST: zk1:2181,zk2:2181,zk3:2181
+    depends_on:
+      - api
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr3:/var/solr
+    networks:
+      - solr
+      - zk
+
+  zk1:
+    hostname: ambit-zk1
+    image: zookeeper:3.7
+    restart: unless-stopped
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_ADMINSERVER_ENABLED: 'false'
+      ZOO_STANDALONE_ENABLED: 'false'
+      ZOO_SERVERS: server.1=zk1:2888:3888;2181 server.2=zk2:2888:3888;2181 server.3=zk3:2888:3888;2181
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+    volumes:
+      - zk1-data:/data
+      - zk1-datalog:/datalog
+    networks:
+      - zk
+
+  zk2:
+    hostname: ambit-zk2
+    image: zookeeper:3.7
+    restart: unless-stopped
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_ADMINSERVER_ENABLED: 'false'
+      ZOO_STANDALONE_ENABLED: 'false'
+      ZOO_SERVERS: server.1=zk1:2888:3888;2181 server.2=zk2:2888:3888;2181 server.3=zk3:2888:3888;2181
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+    volumes:
+      - zk2-data:/data
+      - zk2-datalog:/datalog
+    networks:
+      - zk
+
+  zk3:
+    hostname: ambit-zk3
+    image: zookeeper:3.7
+    restart: unless-stopped
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_ADMINSERVER_ENABLED: 'false'
+      ZOO_STANDALONE_ENABLED: 'false'
+      ZOO_SERVERS: server.1=zk1:2888:3888;2181 server.2=zk2:2888:3888;2181 server.3=zk3:2888:3888;2181
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+    volumes:
+      - zk3-data:/data
+      - zk3-datalog:/datalog
+    networks:
+      - zk
