@@ -54,7 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [8, 11]
+        java-distribution: ['temurin', 'zulu']
+        java-version: [8, 11, 17]
         rdbms-version: ${{ fromJson(needs.set-test-matrices.outputs.matrix-db) }}
       fail-fast: false
     env:
@@ -74,7 +75,7 @@ jobs:
       - name: Set up Adopt OpenJDK ${{ matrix.java-version }} HotSpot JVM
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: ${{ matrix.java-distribution }}
           java-version: ${{ matrix.java-version }}
           server-id: github  # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }}  # location for the settings.xml file

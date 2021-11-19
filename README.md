@@ -96,9 +96,9 @@ ambit-db  | [ci/ambit-db/tags.txt](https://github.com/ideaconsult/ambit-docker/b
 
 ## Notes on specific versions
 
-* Java 11 is supported, but is much less tested than Java 8.
-* MySQL 8 is *not* supported. Support is in the works.
-* Tomcat 10 is *not* supported. We plan to move away from Tomcat.
+* Java 11 and 17 are supported, but for maximum stability we still recommend Java 8 as the most thoroughly tested platform.
+* MySQL 8+ is *not* supported. We may add support for it in the future, but for the time being please use MariaDB instead.
+* Tomcat 10 is *not* supported and most likely will never be supported. We plan to transition to [Quarkus](https://quarkus.io/).
 
 # Troubleshooting
 * If you hit the Docker Hub pull limits, use [GitHub Container Registry](https://github.com/orgs/ideaconsult/packages). You'll need to edit the docker-compose files and prepend the `image` settings with `ghcr.io/`, e.g. `ideaconsult/ambit-db:latest` becomes `ghcr.io/ideaconsult/ambit-db:latest`.
