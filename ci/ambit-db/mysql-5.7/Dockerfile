@@ -1,4 +1,4 @@
-FROM mysql:5.7
+FROM mysql:5.7-debian
 
 ENV MYSQL_ROOT_PASSWORD ambitroot
 
