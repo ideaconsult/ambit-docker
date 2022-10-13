@@ -24,6 +24,7 @@ declare -a procedure_list=(
 )
 
 declare -A public_db_import_urls=(
+    ['calibrate']='https://sandbox.zenodo.org/record/1114164/files/calibrate.sql.xz'
     ['nanoreg1']='https://zenodo.org/record/3467016/files/nanoreg_nrfiles.sql.xz'
     ['nanoreg2']='https://zenodo.org/record/4713745/files/nanoreg2.sql.xz'
 )

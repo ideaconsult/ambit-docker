@@ -20,6 +20,21 @@ services:
     networks:
       - db
 
+  api-calibrate:
+    hostname: ambit-api-calibrate
+    image: ideaconsult/ambit-api:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    environment:
+      - "AMBIT_DATABASE=calibrate"
+    depends_on:
+      - db
+    networks:
+      - db
+    ports:
+      - '127.0.0.1:8082:8080'
+
   api-nanoreg1:
     hostname: ambit-api-nanoreg1
     image: ideaconsult/ambit-api:latest

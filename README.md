@@ -3,14 +3,17 @@ This repo helps you test AMBIT on your machine or deploy it inside your organiza
 
 
 # Quick start
-AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.net/projects/nanoreg/) and [NANoREG II data](https://search.data.enanomapper.net/projects/nanoreg2) in under 30 seconds:
+AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.net/projects/nanoreg/), [NANoREG II data](https://search.data.enanomapper.net/projects/nanoreg2), and [caLIBRAte data](https://search.data.enanomapper.net/projects/calibrate/) in under 30 seconds:
 
 1. [Install Docker Compose](https://docs.docker.com/compose/install/) if you haven't already.
 1. `git clone https://github.com/ideaconsult/ambit-docker.git`
 1. `cd ambit-docker`
 1. `docker-compose pull`
 1. `docker-compose up`
-1. Open http://127.0.0.1:8080/ambit (NANoREG) and http://127.0.0.1:8081/ambit (NANoREG II) in your browser.
+1. Open the following addresses in your browser:
+   - http://127.0.0.1:8080/ambit for NANoREG
+   - http://127.0.0.1:8081/ambit for NANoREG II
+   - http://127.0.0.1:8082/ambit for caLIBRAte
 1. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console, where `docker-compose up` is running, to stop it.
 
 **NOTE:**: These instances do **not** contain the data from the [eNanoMapper database](https://search.data.enanomapper.net/projects/enanomapper/).
@@ -24,7 +27,7 @@ Copy the `docker-compose.yml` and `ambit-config.env` files to a new directory an
 Check the [examples](examples) for some ready-made solutions or see below for more technical information.
 
 ## Importing custom datasets
-Some publicly available datasets are automatically downloaded, when their names are recognized in the configuration. Currently, these include `nanoreg1` and `nanoreg2`.
+Some publicly available datasets are automatically downloaded, when their names are recognized in the configuration. Currently, these include `calibrate`, `nanoreg1` and `nanoreg2`.
 
 If you have another SQL dump that you want to be imported:
 1. Create a `data_import` subdirectory in the directory with your custom `docker-compose.yml` and `ambit-config.env` files.
@@ -74,7 +77,7 @@ The password for the root user of the RDBMS server run by Docker Compose.
 For testing the default should be fine. In production environments, it is strongly advisable to change this to something more secure. Use this password when connecting to the RDBMS server as root (see the section #Tips for more information). Note that the value of the option is irrelevant if using a custom RDBMS server.
 
 ## `docker-compose.yml` reference
-* For each database name in the `AMBIT_DATABASES` option above, add a new `api-<something>` section in the `docker-compose.yml` file. Use the existing `api-nanoreg1`, `api-nanoreg2` sections as an example. The `api-<something>` sections **must** be in sync with `AMBIT_DATABASES`. For example, if you have set the latter to `nanoreg1 datasetA datasetB`, `docker-compose.yml` must have and only have the `api-<something>` sections of `api-nanoreg1`, `api-datasetA`, and `api-datasetB`. You can actually use arbitrary names for these sections, but keeping the name of the dataset in the name keeps everything tidy. Note also that the `db` section must be present at all times, unless you opt to use a custom RDBMS server.
+* For each database name in the `AMBIT_DATABASES` option above, add a new `api-<something>` section in the `docker-compose.yml` file. Use the existing sections of this type as an example. The `api-<something>` sections **must** be in sync with `AMBIT_DATABASES`. For example, if you have set the latter to `nanoreg1 datasetA datasetB`, `docker-compose.yml` must have and only have the `api-<something>` sections of `api-nanoreg1`, `api-datasetA`, and `api-datasetB`. You can actually use arbitrary names for these sections, but keeping the name of the dataset in the name keeps everything tidy. Note also that the `db` section must be present at all times, unless you opt to use a custom RDBMS server.
 * In each `api-<something>` section set the `AMBIT_DATABASE` environment variable (note the singular, unlike in `ambit-config.env`, where it is plural!) to the corresponding database.
 * In each `api-<something>` section set the `ports` option to a different host port (the one after `127.0.0.1`). With three datasets you may use, for example, `127.0.0.1:8080:8080`, `127.0.0.1:8081:8080`, and `127.0.0.1:8082:8080`. You may use any port numbers here (subject to OS permissions), just remember to open the same ports in your browser. For the service port (the last one), however, keep it at `8080`.
 
