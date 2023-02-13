@@ -37,6 +37,7 @@ services:
     restart: unless-stopped
     env_file:
       - ambit-config.env
+      - solr-config.env
     environment:
       AMBIT_DATABASE: ambit_lri3
     depends_on:

@@ -19,6 +19,8 @@ ambit_db_user="${AMBIT_DB_USER:-ambit}"
 ambit_db_pass="${AMBIT_DB_PASS:-ambit}"
 ambit_aa_enable="${AMBIT_AA_ENABLE:-false}"
 ambit_users_db="${AMBIT_USERS_DB:-ambit_users}"
+ambit_solr_user="${AMBIT_SOLR_USER:-ambitlri}"
+ambit_solr_pass="${AMBIT_SOLR_PASS:-ambitlri}"
 
 declare -A ambit2_props=(
     ['ambit.profile']="${ambit_profile}"
@@ -26,6 +28,8 @@ declare -A ambit2_props=(
     ['Host']="${ambit_db_host}"
     ['User']="${ambit_db_user}"
     ['Password']="${ambit_db_pass}"
+    ['solr.basic.user.1']="${ambit_solr_user}"
+    ['solr.basic.password.1']="${ambit_solr_pass}"
 )
 
 declare -A config_props=(
