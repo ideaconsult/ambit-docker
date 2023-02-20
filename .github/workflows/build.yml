@@ -21,7 +21,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Determining the RDBMS test matrix
         id: db
@@ -43,10 +43,10 @@ jobs:
         run: |
           matrix_json="$( awk "${awk_get_tags_json}" '${{ env.prefix }}/tags.txt')"
           jq . <<<"${matrix_json}"  # lint
-          echo "::set-output name=matrix::${matrix_json}"
+          echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
 
           war_db="$( awk "${awk_get_war_from_db}" '${{ env.prefix }}/tags.txt')"
-          echo "::set-output name=war-db::${war_db}"
+          echo "war-db=${war_db}" >> $GITHUB_OUTPUT
 
   build-ambit:
 
@@ -66,14 +66,14 @@ jobs:
     steps:
 
       - name: Checkout the AMBIT repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: ideaconsult/ambit-mirror
           ref: ${{ github.event.client_payload.sha }}
           token: ${{ secrets.GH_R_PR }}
 
       - name: Set up Adopt OpenJDK ${{ matrix.java-version }} HotSpot JVM
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: ${{ matrix.java-distribution }}
           java-version: ${{ matrix.java-version }}
@@ -91,7 +91,7 @@ jobs:
           ln -s -t /usr/bin "/opt/apache-maven-${maven_version}/bin/mvn"
 
       - name: Cache the local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -189,7 +189,7 @@ jobs:
       - name: Save the newly build WAR
         # Only the one tested with the RDBMS marked with our "latest" image tag
         if: ${{ matrix.rdbms-version == needs.set-test-matrices.outputs.war-db }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ambit-war-java${{ matrix.java-version }}
           path: ambit2-apps/ambit2-www/target/ambit2.war
@@ -206,7 +206,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Determining the ambit-api build matrix
         id: api
@@ -216,7 +216,7 @@ jobs:
           export matrix_list="$(awk 'NR > 1 { printf ", " } { printf "\"" $1 "\"" }' '${{ env.prefix }}/tags.txt')"
           export matrix_json="{\"ver\":[${matrix_list}]}"
           jq . <<<"$matrix_json" # lint
-          echo "::set-output name=matrix::${matrix_json}"
+          echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
 
       - name: Determine the build matrix
         id: db
@@ -226,7 +226,7 @@ jobs:
           export matrix_list="$(awk 'NR > 1 { printf ", " } { printf "\"" $1 "\"" }' '${{ env.prefix }}/tags.txt')"
           export matrix_json="{\"ver\":[${matrix_list}]}"
           jq . <<<"$matrix_json" # lint
-          echo "::set-output name=matrix::${matrix_json}"
+          echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
 
   build-images-api:
 
@@ -242,7 +242,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Identify the OpenJDK version
         run: |
@@ -250,7 +250,7 @@ jobs:
           echo "java_version=${java_version}" >>"$GITHUB_ENV"
 
       - name: Load the latest WAR for the required OpenJDK version
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ambit-war-java${{ env.java_version }}
           path: ./ci/${{ env.image }}/${{ matrix.ver }}
@@ -267,23 +267,23 @@ jobs:
           echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: idea-docker
           password: ${{ secrets.GH_CR_FA }}
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: kerberizer
           password: ${{ secrets.DCKR_TOKEN }}
 
       - name: Build the ambit-api image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: ./ci/${{ env.image }}/${{ matrix.ver }}
           pull: true
@@ -304,7 +304,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Determine the image tags
         run: >-
@@ -318,23 +318,23 @@ jobs:
           echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: idea-docker
           password: ${{ secrets.GH_CR_FA }}
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: kerberizer
           password: ${{ secrets.DCKR_TOKEN }}
 
       - name: Build the ambit-db image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: ./ci/${{ env.image }}/${{ matrix.ver }}
           pull: true
@@ -349,7 +349,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Spin up a default docker-compose setup
         run: |
