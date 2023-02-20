@@ -1,7 +1,6 @@
+mariadb-10.10
+mariadb-10.9
 mariadb-10.6    mariadb-10  mariadb   latest
 mariadb-10.5
 mariadb-10.4
-mariadb-10.3
-mariadb-10.2
 mysql-5.7       mysql-5     mysql
-mysql-5.6
