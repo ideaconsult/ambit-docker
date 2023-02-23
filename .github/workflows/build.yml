@@ -162,9 +162,6 @@ jobs:
           -B -f ambit2-all/pom.xml
           clean install
 
-      - name: FIXME Temporary fix for Java 17
-        run: sed -i '349s/2.1.1/3.3.2/' ambit2-apps/ambit2-www/pom.xml
-
       - name: Build with Maven (ambit-apps)
         run: >-
           mvn
