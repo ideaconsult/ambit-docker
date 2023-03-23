@@ -72,7 +72,7 @@ jobs:
           ref: ${{ github.event.client_payload.sha }}
           token: ${{ secrets.GH_R_PR }}
 
-      - name: Set up OpenJDK: ${{ matrix.java-distribution }}/${{ matrix.java-version }}
+      - name: 'Set up OpenJDK: ${{ matrix.java-distribution }}/${{ matrix.java-version }}'
         uses: actions/setup-java@v3
         with:
           distribution: ${{ matrix.java-distribution }}
