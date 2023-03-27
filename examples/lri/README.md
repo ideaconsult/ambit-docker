@@ -1,5 +1,5 @@
-# The Cefic-LRI cheminformatics tool
-The [Cefic-LRI cheminformatics data management tool](http://cefic-lri.org/toolbox/ambit/). Note that **no data is included** and must be provided separately. If you are tasked with deploying the system, you will be provided with links to the required files.
+# The LRI AMBIT Read Across tool
+The [LRI AMBIT Read Across tool](http://cefic-lri.org/toolbox/ambit/). Note that **no data is included** and must be provided separately. If you are tasked with deploying the system, you will be provided with links to the required files.
 
 ## Quick Start
 1. Make sure your Docker instance supports [Docker Compose](https://docs.docker.com/compose/install/).
