@@ -8,3 +8,6 @@ Shows how to start AMBIT with an empty database. Mainly intended for populating 
 
 ## [empty-db-solr](empty-db-solr)
 Builds upon the empty database example by adding a small Apache Solr cluster for easy experimenting.
+
+## [lri](lri)
+The [LRI AMBIT Read Across tool](http://cefic-lri.org/toolbox/ambit/). Note that **no data is included** and must be provided separately. If you are tasked with deploying the system, you will be provided with links to the required files.
