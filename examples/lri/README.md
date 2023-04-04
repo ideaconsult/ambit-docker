@@ -9,6 +9,7 @@ The [LRI AMBIT Read Across tool](http://cefic-lri.org/toolbox/ambit/). Note that
 1. `docker compose pull`
 1. `docker compose up`
 1. The first run will require several minutes to initialize the databases. Wait for the message "LRI Solr is initialized successfully".
+    - Note that sometimes on the first run the RDBMS might take longer to ininitialize. Check the logs for `lri_db ... [Note] [Entrypoint]: Temporary server stopped` and `lri_db ... [Note] [Entrypoint]: MariaDB init process done. Ready for start up.` If these are not present, the RDBMS is still initializing. Specifically checking the RDBMS logs with `docker compose logs db` might be helpful too. This is only relevant for the first run of the services or after `docker compose down --volumes`. Subsequent runs, with the RDBMS already initialized, should be much faster.
 1. Open http://127.0.0.1:8080 in your browser.
 1. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console, where `docker-compose up` is running, to stop it.
 
