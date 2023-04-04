@@ -23,7 +23,7 @@ services:
   ui:
     hostname: lri_ui
     container_name: lri_ui
-    image: lri-ui:latest
+    image: ghcr.io/ideaconsult/lri-ui:latest
     restart: unless-stopped
     environment:
       WEB_URL_BASE: http://127.0.0.1:8080
@@ -33,7 +33,7 @@ services:
   ambit:
     hostname: lri_ambit
     container_name: lri_ambit
-    image: ambit-lri:latest
+    image: ghcr.io/ideaconsult/lri-ambit-api:latest
     restart: unless-stopped
     env_file:
       - ambit-config.env
@@ -50,7 +50,7 @@ services:
   toxpredict:
     hostname: lri_toxpredict
     container_name: lri_toxpredict
-    image: toxpredict-api:latest
+    image: ghcr.io/ideaconsult/toxpredict-api:latest
     restart: unless-stopped
     env_file:
       - solr-config.env
@@ -62,7 +62,7 @@ services:
   db:
     hostname: lri_db
     container_name: lri_db
-    image: ambitlri-db:latest
+    image: ghcr.io/ideaconsult/lri-ambit-db:latest
     restart: unless-stopped
     env_file:
       - ambit-config.env
