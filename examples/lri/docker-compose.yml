@@ -1,0 +1,211 @@
+services:
+
+  haproxy:
+    hostname: lri_haproxy
+    container_name: lri_haproxy
+    image: haproxy:lts-alpine
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+    depends_on:
+      - ui
+      - solr1
+      - solr2
+      - solr3
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - backend
+      - ui
+    ports:
+      - '127.0.0.1:8080:8080'
+
+  ui:
+    hostname: lri_ui
+    container_name: lri_ui
+    image: ghcr.io/ideaconsult/lri-ui:latest
+    restart: unless-stopped
+    environment:
+      WEB_URL_BASE: http://127.0.0.1:8080
+    networks:
+      - ui
+
+  ambit:
+    hostname: lri_ambit
+    container_name: lri_ambit
+    image: ghcr.io/ideaconsult/lri-ambit-api:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+      - solr-config.env
+    environment:
+      AMBIT_DATABASE: ambit_lri3
+    depends_on:
+      - db
+      - haproxy
+    networks:
+      - backend
+      - db
+
+  toxpredict:
+    hostname: lri_toxpredict
+    container_name: lri_toxpredict
+    image: ghcr.io/ideaconsult/toxpredict-api:latest
+    restart: unless-stopped
+    env_file:
+      - solr-config.env
+    depends_on:
+      - haproxy
+    networks:
+      - backend
+
+  db:
+    hostname: lri_db
+    container_name: lri_db
+    image: ghcr.io/ideaconsult/lri-ambit-db:latest
+    restart: unless-stopped
+    env_file:
+      - ambit-config.env
+    volumes:
+      - db:/var/lib/mysql
+      - ./data_import:/opt/ambit/data_import
+    networks:
+      - db
+
+  solr-helper:
+    hostname: lri_solr_helper
+    container_name: lri_solr_helper
+    image: solr:9.1
+    restart: 'no'
+    env_file:
+      - solr-config.env
+    depends_on:
+      - haproxy
+    volumes:
+      - ../../solr-helper:/opt/solr-helper
+      - ./data_import:/opt/data_import
+    networks:
+      - backend
+      - zk
+    user: root
+    entrypoint: /opt/solr-helper/helper.sh
+
+  solr1:
+    hostname: lri_solr1
+    container_name: lri_solr1
+    image: solr:9.1
+    restart: unless-stopped
+    env_file:
+      - solr-config.env
+    environment:
+      SOLR_HOST: solr1
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr1:/var/solr
+    networks:
+      - backend
+      - zk
+
+  solr2:
+    hostname: lri_solr2
+    container_name: lri_solr2
+    image: solr:9.1
+    restart: unless-stopped
+    env_file:
+      - solr-config.env
+    environment:
+      SOLR_HOST: solr2
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr2:/var/solr
+    networks:
+      - backend
+      - zk
+
+  solr3:
+    hostname: lri_solr3
+    container_name: lri_solr3
+    image: solr:9.1
+    restart: unless-stopped
+    env_file:
+      - solr-config.env
+    environment:
+      SOLR_HOST: solr3
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - solr3:/var/solr
+    networks:
+      - backend
+      - zk
+
+  zk1:
+    hostname: lri_zk1
+    container_name: lri_zk1
+    image: zookeeper:3.8
+    restart: unless-stopped
+    env_file:
+      - zoo-config.env
+    environment:
+      ZOO_MY_ID: 1
+    volumes:
+      - zk1_data:/data
+      - zk1_datalog:/datalog
+    networks:
+      - zk
+
+  zk2:
+    hostname: lri_zk2
+    container_name: lri_zk2
+    image: zookeeper:3.8
+    restart: unless-stopped
+    env_file:
+      - zoo-config.env
+    environment:
+      ZOO_MY_ID: 2
+    volumes:
+      - zk2_data:/data
+      - zk2_datalog:/datalog
+    networks:
+      - zk
+
+  zk3:
+    hostname: lri_zk3
+    container_name: lri_zk3
+    image: zookeeper:3.8
+    restart: unless-stopped
+    env_file:
+      - zoo-config.env
+    environment:
+      ZOO_MY_ID: 3
+    volumes:
+      - zk3_data:/data
+      - zk3_datalog:/datalog
+    networks:
+      - zk
+
+networks:
+  backend:
+  db:
+  ui:
+  zk:
+
+volumes:
+  db:
+  solr1:
+  solr2:
+  solr3:
+  zk1_data:
+  zk1_datalog:
+  zk2_data:
+  zk2_datalog:
+  zk3_data:
+  zk3_datalog:
