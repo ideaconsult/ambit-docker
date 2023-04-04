@@ -5,19 +5,21 @@ This repo helps you test AMBIT on your machine or deploy it inside your organiza
 # Quick start
 AMBIT with the freely available data from [NANoREG](https://cordis.europa.eu/project/id/310584), [NANoREG II](https://cordis.europa.eu/project/id/646221), [caLIBRAte](https://cordis.europa.eu/project/id/686239), and [GRACIOUS](https://cordis.europa.eu/project/id/760840) in under 30 seconds:
 
-1. [Install Docker Compose](https://docs.docker.com/compose/install/) if you haven't already.
+1. Make sure your Docker instance supports [Docker Compose](https://docs.docker.com/compose/install/).
 1. `git clone https://github.com/ideaconsult/ambit-docker.git`
 1. `cd ambit-docker`
-1. `docker-compose pull`
-1. `docker-compose up`
+1. `docker compose pull`
+1. `docker compose up`
 1. Open the following addresses in your browser:
    - http://127.0.0.1:8080/ambit for NANoREG
    - http://127.0.0.1:8081/ambit for NANoREG II
    - http://127.0.0.1:8082/ambit for caLIBRAte
    - http://127.0.0.1:8083/ambit for GRACIOUS
-1. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console, where `docker-compose up` is running, to stop it.
+1. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console, where `docker compose up` is running, to stop it.
 
-**NOTE:**: These instances do **not** contain the data from the [eNanoMapper database](https://search.data.enanomapper.net/).
+- **NOTE**: These instances do **not** contain the data from the [eNanoMapper database](https://search.data.enanomapper.net/).
+- **NOTE**: If using older Docker versions, replace `docker compose` with `docker-compose`.
+- **NOTE**: Running the Docker commands will likely require `sudo` or equivalent.
 
 # Customization
 Need different datasets? An empty instance to populate with your own data?
@@ -83,10 +85,10 @@ For testing the default should be fine. In production environments, it is strong
 * In each `api-<something>` section set the `ports` option to a different host port (the one after `127.0.0.1`). With three datasets you may use, for example, `127.0.0.1:8080:8080`, `127.0.0.1:8081:8080`, and `127.0.0.1:8082:8080`. You may use any port numbers here (subject to OS permissions), just remember to open the same ports in your browser. For the service port (the last one), however, keep it at `8080`.
 
 # Tips
-* You can connect to the RDBMS server by using this command from the **same** directory where the relevant `docker-compose.yml` is located: `sudo docker-compose exec db mysql -uroot -p`. When asked for a password, enter the password defined by `MYSQL_ROOT_PASSWORD` in `ambit-config.env`. Note that `db` here is the name of the RDBMS service in `docker-compose.yml`. If you have changed this name, update the command accordingly.
-* When you make changes to `docker-compose.yml`, Docker Compose automatically recreates the containers for you. However, if you make changes to `ambit-config.env` and other files, these changes might not be picked up. In such cases it is advisable to run `sudo docker-compose down` before running `sudo docker-compose up` again. Do note, however, that even this command will not affect the databases. If you want to have the datases recreated, for example, if you have changed `AMBIT_DATABASES`, you should run `sudo docker-compose down -v`. **WARNING: The latter command will irreversibly destroy the existing databases! If you have entered custom data, make a dump before running the command!** One way of doing this could be `sudo docker-compose exec db mysqldump -uroot -p<value-of-MYSQL_ROOT_PASSWORD> --single-transaction --add-drop-database --databases --routines <database-name>`; redirect the output as needed, e.g. to a file.
-* You can run the setup in background by using `sudo docker-compose up -d`. To stop run `sudo docker-compose stop` from the **same** directory.
-* Instead of running `docker-compose` in the same directory as the `docker-compose.yml` file, you can specify its location with the `-f` option, e.g. `docker-compose -f ~/my-docker-test/docker-compose.yml stop`.
+* You can connect to the RDBMS server by using this command from the **same** directory where the relevant `docker-compose.yml` is located: `docker compose exec db mysql -uroot -p`. When asked for a password, enter the password defined by `MYSQL_ROOT_PASSWORD` in `ambit-config.env`. Note that `db` here is the name of the RDBMS service in `docker-compose.yml`. If you have changed this name, update the command accordingly.
+* When you make changes to `docker-compose.yml`, Docker Compose automatically recreates the containers for you. However, if you make changes to `ambit-config.env` and other files, these changes might not be picked up. In such cases it is advisable to run `docker compose down` before running `docker compose up` again. Do note, however, that even this command will not affect the databases. If you want to have the datases recreated, for example, if you have changed `AMBIT_DATABASES`, you should run `docker compose down -v`. **WARNING: The latter command will irreversibly destroy the existing databases! If you have entered custom data, make a dump before running the command!** One way of doing this could be `docker compose exec db mysqldump -uroot -p<value-of-MYSQL_ROOT_PASSWORD> --single-transaction --add-drop-database --databases --routines <database-name>`; redirect the output as needed, e.g. to a file.
+* You can run the setup in background by using `docker compose up -d`. To stop run `docker compose stop` from the **same** directory.
+* Instead of running `docker-compose` in the same directory as the `docker-compose.yml` file, you can specify its location with the `-f` option, e.g. `docker compose -f ~/my-docker-test/docker-compose.yml stop`.
 
 # Supported tags
 
@@ -102,5 +104,5 @@ ambit-db  | [ci/ambit-db/tags.txt](https://github.com/ideaconsult/ambit-docker/b
 * Tomcat 10 is *not* supported and most likely will never be supported. We plan to transition to [Quarkus](https://quarkus.io/).
 
 # Troubleshooting
-* If you hit the Docker Hub pull limits, use [GitHub Container Registry](https://github.com/orgs/ideaconsult/packages). You'll need to edit the docker-compose files and prepend the `image` settings with `ghcr.io/`, e.g. `ideaconsult/ambit-db:latest` becomes `ghcr.io/ideaconsult/ambit-db:latest`.
-* If `docker-compose up` refuses to start with errors like `Bind for 127.0.0.1:8080 failed: port is already allocated`, something is using the said ports on your system. Try changing the port in `docker-compose.yml` to some different value. On Linux you can use something like `echo $(( ${RANDOM}/2 + 49152 ))` to get a suitable random high port.
+* If you hit the Docker Hub pull limits, use [GitHub Container Registry](https://github.com/orgs/ideaconsult/packages). You'll need to edit the docker compose files and prepend the `image` settings with `ghcr.io/`, e.g. `ideaconsult/ambit-db:latest` becomes `ghcr.io/ideaconsult/ambit-db:latest`.
+* If `docker compose up` refuses to start with errors like `Bind for 127.0.0.1:8080 failed: port is already allocated`, something is using the said ports on your system. Try changing the port in `docker-compose.yml` to some different value. On Linux you can use something like `echo $(( ${RANDOM}/2 + 49152 ))` to get a suitable random high port.
