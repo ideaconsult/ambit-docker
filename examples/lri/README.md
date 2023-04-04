@@ -15,7 +15,8 @@ The [LRI AMBIT Read Across tool](http://cefic-lri.org/toolbox/ambit/). Note that
 
 See the main [README.md](../../README.md) for more information.
 
-**NB**: If using older Docker versions, replace `docker compose` with `docker-compose`.
+- **NOTE**: If using older Docker versions, replace `docker compose` with `docker-compose`.
+- **NOTE**: Running the Docker commands will likely require `sudo` or equivalent.
 
 ## Deployment notes
 
