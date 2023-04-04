@@ -3,7 +3,7 @@ This repo helps you test AMBIT on your machine or deploy it inside your organiza
 
 
 # Quick start
-AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.net/projects/nanoreg/), [NANoREG II data](https://search.data.enanomapper.net/projects/nanoreg2), and [caLIBRAte data](https://search.data.enanomapper.net/projects/calibrate/) in under 30 seconds:
+AMBIT with the freely available data from [NANoREG](https://cordis.europa.eu/project/id/310584), [NANoREG II](https://cordis.europa.eu/project/id/646221), [caLIBRAte](https://cordis.europa.eu/project/id/686239), and [GRACIOUS](https://cordis.europa.eu/project/id/760840) in under 30 seconds:
 
 1. [Install Docker Compose](https://docs.docker.com/compose/install/) if you haven't already.
 1. `git clone https://github.com/ideaconsult/ambit-docker.git`
@@ -14,9 +14,10 @@ AMBIT with the freely available [NANoREG data](https://search.data.enanomapper.n
    - http://127.0.0.1:8080/ambit for NANoREG
    - http://127.0.0.1:8081/ambit for NANoREG II
    - http://127.0.0.1:8082/ambit for caLIBRAte
+   - http://127.0.0.1:8083/ambit for GRACIOUS
 1. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the console, where `docker-compose up` is running, to stop it.
 
-**NOTE:**: These instances do **not** contain the data from the [eNanoMapper database](https://search.data.enanomapper.net/projects/enanomapper/).
+**NOTE:**: These instances do **not** contain the data from the [eNanoMapper database](https://search.data.enanomapper.net/).
 
 # Customization
 Need different datasets? An empty instance to populate with your own data?
@@ -27,7 +28,7 @@ Copy the `docker-compose.yml` and `ambit-config.env` files to a new directory an
 Check the [examples](examples) for some ready-made solutions or see below for more technical information.
 
 ## Importing custom datasets
-Some publicly available datasets are automatically downloaded, when their names are recognized in the configuration. Currently, these include `calibrate`, `nanoreg1` and `nanoreg2`.
+Some publicly available datasets are automatically downloaded, when their names are recognized in the configuration. Currently, these include `calibrate`, `gracious`, `nanoreg1` and `nanoreg2`.
 
 If you have another SQL dump that you want to be imported:
 1. Create a `data_import` subdirectory in the directory with your custom `docker-compose.yml` and `ambit-config.env` files.

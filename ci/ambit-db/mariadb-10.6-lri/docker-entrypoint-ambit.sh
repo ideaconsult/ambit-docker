@@ -30,7 +30,8 @@ declare -a proxy_list=(
 )
 
 declare -A public_db_import_urls=(
-    ['calibrate']='https://sandbox.zenodo.org/record/1114164/files/calibrate.sql.xz'
+    ['calibrate']='https://zenodo.org/record/7193516/files/calibrate.sql.xz'
+    ['gracious']='https://zenodo.org/record/7777590/files/gracious.sql.xz'
     ['nanoreg1']='https://zenodo.org/record/3467016/files/nanoreg_nrfiles.sql.xz'
     ['nanoreg2']='https://zenodo.org/record/4713745/files/nanoreg2.sql.xz'
 )
