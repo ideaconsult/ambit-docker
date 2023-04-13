@@ -38,7 +38,6 @@ The system uses [named volumes](https://docs.docker.com/storage/volumes/) for pe
 - `db`: The RDBMS backend storage.
 - `solr{1,2,3}`: The Solr persistent data.
 - `zk{1,2,3}_*`: The ZooKeeper persistent data.
-These volumes typically reside on UNIX systems in `/var/lib/docker/volumes`.
 
 The Docker containers are, by themselves, stateless. All persistent data is recorded to the above volumes. This means that the containers can be removed or recreated at will and no data loss should occur as long as the volumes are kept intact. In particular, running `docker compose down` is safe. After the containers are recreated with `docker compose up`, the system should continue working as if no action had ever been taken.
 
