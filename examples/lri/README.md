@@ -45,7 +45,7 @@ If no data (e.g. user accounts, read across assessments) have been added or modi
 
 Different backup strategies can be used for the persistent data:
 - The volumes typically reside on UNIX systems in `/var/lib/docker/volumes`. They are just directories, so any file backup solution should work on them. As usual, it's best to shut down all the services for the duration of the backup. This method should work universally for all services that use volumes.
-- The RDBMS (MariaDB) can also be backed up with tools like `mysqldump`, e.g. `docker compose exec db mysqldump ...`. The databases that should be dumped are the ones from the `AMBIT_DATABASES` and `AMBIT_USERS_DB` variables in `ambit-config.env` (by default, these are `ambit_lri3` and `ambit_users`).
+- The RDBMS (MariaDB) can also be backed up with tools like `mysqldump`, e.g. `docker compose exec db mysqldump --single-transaction --routines ...` (make sure to use the `--routines` option). The databases that should be dumped are the ones from the `AMBIT_DATABASES` and `AMBIT_USERS_DB` variables in `ambit-config.env` (by default, these are `ambit_lri3` and `ambit_users`).
 - The Solr and ZooKeeper data are not expected to change after deployment, so their backup is not critical, as they can always be restored to the original state.
 
 **TL;DR**:
