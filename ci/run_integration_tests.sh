@@ -13,7 +13,7 @@ targets=(
 #    Test name                    :: Test endpoint                   :: Result parser                         :: Result validation
 # shellcheck disable=SC2016
 tests=(
-    'Algorithms: [List]           :: /algorithm                      :: jq -r ".algorithm|length"             :: -eq 140'
+    'Algorithms: [List]           :: /algorithm                      :: jq -r ".algorithm|length"             :: -eq 141'
     'Algorithms: Benigni/Bossa    :: /algorithm/toxtreecarc          :: jq -r .algorithm[].content            :: == mutant.BB_CarcMutRules'
     'Algorithms: Cramer           :: /algorithm/toxtreecramer        :: jq -r .algorithm[].content            :: == toxTree.tree.cramer.CramerRules'
     'Algorithms: ILSI/Kroes       :: /algorithm/toxtreekroes         :: jq -r .algorithm[].content            :: == toxtree.plugins.kroes.Kroes1Tree'
