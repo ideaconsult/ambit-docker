@@ -1,4 +1,4 @@
-FROM mariadb:10.9
+FROM mariadb:10.11
 
 ENV MYSQL_ROOT_PASSWORD ambitroot
 
