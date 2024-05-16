@@ -1,6 +1,5 @@
+tomcat9-jdk25-temurin     tomcat9-jdk25                 jdk25
+tomcat9-jdk21-temurin     tomcat9-jdk21                 jdk21
 tomcat9-jdk17-temurin     tomcat9-jdk17                 jdk17
 tomcat9-jdk11-temurin     tomcat9-jdk11                 jdk11
 tomcat9-jdk8-temurin      tomcat9-jdk8      tomcat9     jdk8    latest
-tomcat8.5-jdk17-temurin   tomcat8.5-jdk17
-tomcat8.5-jdk11-temurin   tomcat8.5-jdk11
-tomcat8.5-jdk8-temurin    tomcat8.5-jdk8    tomcat8.5
