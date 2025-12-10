@@ -1,4 +1,4 @@
-FROM tomcat:8.5-jdk17-temurin
+FROM tomcat:9-jdk25-temurin
 
 ENV AMBIT_CONFIG_OVERRIDE_DIR /opt/ambit/config_override
 

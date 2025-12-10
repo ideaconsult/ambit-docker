@@ -4,10 +4,16 @@ name: Build the ambit-docker images
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
   repository_dispatch:
-    types: [ambit-repo-push]
+    types:
+      - ambit-repo-push
   push:
     branches:
       - master
+      - ci-updates
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -21,7 +27,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
 
       - name: Determining the RDBMS test matrix
         id: db
@@ -48,14 +54,16 @@ jobs:
           war_db="$( awk "${awk_get_war_from_db}" '${{ env.prefix }}/tags.txt')"
           echo "war-db=${war_db}" >> $GITHUB_OUTPUT
 
+
   build-ambit:
 
-    needs: [set-test-matrices]
     runs-on: ubuntu-latest
+    needs:
+      - set-test-matrices
     strategy:
       matrix:
-        java-distribution: ['temurin', 'zulu']
-        java-version: [8, 11, 17]
+        java-distribution: ['temurin', 'corretto']
+        java-version: [8, 11, 17, 21, 25]
         rdbms-version: ${{ fromJson(needs.set-test-matrices.outputs.matrix-db) }}
       fail-fast: false
     env:
@@ -66,14 +74,14 @@ jobs:
     steps:
 
       - name: Checkout the AMBIT repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
         with:
           repository: ideaconsult/ambit-mirror
           ref: ${{ github.event.client_payload.sha }}
           token: ${{ secrets.GH_R_PR }}
 
       - name: 'Set up OpenJDK: ${{ matrix.java-distribution }}/${{ matrix.java-version }}'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5.1.0
         with:
           distribution: ${{ matrix.java-distribution }}
           java-version: ${{ matrix.java-version }}
@@ -83,7 +91,7 @@ jobs:
       - name: Set up Maven if using act
         if: ${{ env.ACT }}
         env:
-          maven_version: 3.6.3
+          maven_version: 3.9.11
         run: >-
           wget -P /tmp
             "https://mirrors.netix.net/apache/maven/maven-3/${maven_version}/binaries/apache-maven-${maven_version}-bin.tar.gz";
@@ -91,7 +99,7 @@ jobs:
           ln -s -t /usr/bin "/opt/apache-maven-${maven_version}/bin/mvn"
 
       - name: Cache the local Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -184,13 +192,17 @@ jobs:
         run: docker stop "${rdbms_ctnr_name}"
 
       - name: Save the newly build WAR
-        # Only the one tested with the RDBMS marked with our "latest" image tag
-        if: ${{ matrix.rdbms-version == needs.set-test-matrices.outputs.war-db }}
-        uses: actions/upload-artifact@v3
+        # Only the one tested with the RDBMS marked with our "latest" image tag,
+        # and only for the Java distribution that we build our images with.
+        if: >
+          matrix.rdbms-version == needs.set-test-matrices.outputs.war-db &&
+          matrix.java-distribution == 'temurin'
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: ambit-war-java${{ matrix.java-version }}
           path: ambit2-apps/ambit2-www/target/ambit2.war
           retention-days: 1
+
 
   set-build-matrices:
 
@@ -203,7 +215,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
 
       - name: Determining the ambit-api build matrix
         id: api
@@ -225,10 +237,13 @@ jobs:
           jq . <<<"$matrix_json" # lint
           echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
 
+
   build-images-api:
 
-    needs: [build-ambit, set-build-matrices]
     runs-on: ubuntu-latest
+    needs:
+      - build-ambit
+      - set-build-matrices
     strategy:
       matrix: ${{ fromJson(needs.set-build-matrices.outputs.matrix-api) }}
     env:
@@ -239,7 +254,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
 
       - name: Identify the OpenJDK version
         run: |
@@ -247,7 +262,7 @@ jobs:
           echo "java_version=${java_version}" >>"$GITHUB_ENV"
 
       - name: Load the latest WAR for the required OpenJDK version
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6.0.0
         with:
           name: ambit-war-java${{ env.java_version }}
           path: ./ci/${{ env.image }}/${{ matrix.ver }}
@@ -264,33 +279,43 @@ jobs:
           echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3.11.1
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
-          username: idea-docker
-          password: ${{ secrets.GH_CR_FA }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3.6.0
         with:
-          username: kerberizer
+          username: ${{ secrets.DCKR_USER }}
           password: ${{ secrets.DCKR_TOKEN }}
 
       - name: Build the ambit-api image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6.18.0
         with:
           context: ./ci/${{ env.image }}/${{ matrix.ver }}
+          outputs: type=docker,dest=ambit-api.${{ matrix.ver }}.docker.tar
           pull: true
           push: ${{ github.ref == 'refs/heads/master' }}  # push only if we're on the master branch
           tags: ${{ env.image_tags }}
 
+      - name: Upload the built image as artifact for download
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: ambit-api.${{ matrix.ver }}.docker.tar
+          path: ambit-api.${{ matrix.ver }}.docker.tar
+          retention-days: 3
+
+
   build-images-db:
 
-    needs: set-build-matrices
     runs-on: ubuntu-latest
+    needs:
+      - set-build-matrices
     strategy:
       matrix: ${{ fromJson(needs.set-build-matrices.outputs.matrix-db) }}
     env:
@@ -301,7 +326,7 @@ jobs:
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
 
       - name: Determine the image tags
         run: >-
@@ -315,43 +340,76 @@ jobs:
           echo "image_tags=${tags_list:1}" >>"$GITHUB_ENV"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3.11.1
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
-          username: idea-docker
-          password: ${{ secrets.GH_CR_FA }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3.6.0
         with:
-          username: kerberizer
+          username: ${{ secrets.DCKR_USER }}
           password: ${{ secrets.DCKR_TOKEN }}
 
       - name: Build the ambit-db image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6.18.0
         with:
           context: ./ci/${{ env.image }}/${{ matrix.ver }}
+          outputs: type=docker,dest=ambit-db.${{ matrix.ver }}.docker.tar
           pull: true
           push: ${{ github.ref == 'refs/heads/master' }}  # push only if we're on the master branch
           tags: ${{ env.image_tags }}
 
+      - name: Upload the built image as artifact for download
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: ambit-db.${{ matrix.ver }}.docker.tar
+          path: ambit-db.${{ matrix.ver }}.docker.tar
+          retention-days: 3
+
+
   integration-testing:
 
-    needs: [build-images-api, build-images-db]
     runs-on: ubuntu-latest
+    needs:
+      - set-build-matrices
+      - build-images-api
+      - build-images-db
+    strategy:
+      matrix:
+        api: ${{ fromJson(needs.set-build-matrices.outputs.matrix-api) }}
+        db: ${{ fromJson(needs.set-build-matrices.outputs.matrix-db) }}
 
     steps:
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.1
 
-      - name: Spin up a default docker-compose setup
+      - name: Download the ambit-api Docker image
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: ambit-api.${{ matrix.api.ver }}.docker.tar
+
+      - name: Download the ambit-db Docker image
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: ambit-db.${{ matrix.db.ver }}.docker.tar
+
+      - name: Load the Docker images and spoof as 'latest'
         run: |
-          docker-compose pull
-          docker-compose up --detach
+          docker load --input ambit-api.${{ matrix.api.ver }}.docker.tar
+          docker load --input ambit-db.${{ matrix.db.ver }}.docker.tar
+          docker tag ideaconsult/ambit-api:${{ matrix.api.ver }} ideaconsult/ambit-api
+          docker tag ideaconsult/ambit-db:${{ matrix.db.ver }} ideaconsult/ambit-db
+
+      - name: Spin up a default Docker Compose setup
+        run: |
+          docker compose pull
+          docker compose up --detach
 
       - name: Wait for the API to become operational
         run: |
@@ -363,8 +421,8 @@ jobs:
       - name: Run the API tests
         run: ./ci/run_integration_tests.sh
 
-      - name: Bring down the docker-compose setup
-        run: docker-compose down --volumes
+      - name: Bring down the Docker Compose setup
+        run: docker compose down --volumes
 
 # FIXME: Temporarily not sending notifications to Discord until we manage to send the final status.
 #  send-notifications:

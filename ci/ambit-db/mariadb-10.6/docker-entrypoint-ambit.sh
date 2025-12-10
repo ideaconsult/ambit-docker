@@ -102,7 +102,7 @@ if [[ ! -d ${mysql_datadir}mysql && ( -z ${1} || ${1:0:1} = '-' ) ]]; then
             set -o nounset
             import_url="${public_db_import_urls[${ambit_db}]}"
             echo "USE \`${ambit_db}\`;"
-            curl -s "${import_url}" | xzcat
+            curl -Ls "${import_url}" | xzcat
         else
             set -o nounset
             echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *" >/dev/stderr
